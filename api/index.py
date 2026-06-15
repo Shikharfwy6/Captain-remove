@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # =====================================================================
 # YAHAN BOTFATHER SE MILA TOKEN DALEIN
-TOKEN = "YOUR_BOT_TOKEN_HERE"
+TOKEN = "8903632186:AAFpZ7EP4II3H7yY8O5u57fWYBUUkQKZQV8"
 # =====================================================================
 
 # Global application instance (Vercel ke liye initialization)
