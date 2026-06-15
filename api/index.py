@@ -8,8 +8,12 @@ from telegram.ext import Application, MessageHandler, filters
 app = Flask(__name__)
 
 # =====================================================================
-# YAHAN BOTFATHER SE MILA TOKEN DALEIN
+# 1. YAHAN BOTFATHER SE MILA TOKEN DALEIN
 TOKEN = "8903632186:AAFpZ7EP4II3H7yY8O5u57fWYBUUkQKZQV8"
+
+# 2. YAHAN APNE PRIVATE CHANNEL KI ID DALEIN 
+# Note: Private channel ID hamesha -100 se shuru hoti hai aur isme quotes '' nahi lagane hain kyunki yeh ek Number (Integer) hota hai.
+CHANNEL_ID = -1003758252316  # <--- Apni asli ID se replace karein
 # =====================================================================
 
 # Global application instance (Vercel ke liye initialization)
@@ -34,32 +38,43 @@ async def handle_post(update: Update, context):
     original_text = message.caption if message.caption else message.text
     cleaned_text = clean_caption(original_text) if original_text else ""
 
-    # 1. Normal Text Message
-    if message.text and cleaned_text:
-        await message.reply_text(cleaned_text, parse_mode="Markdown")
-        return
+    try:
+        # 1. Normal Text Message
+        if message.text:
+            if cleaned_text:
+                await context.bot.send_message(chat_id=CHANNEL_ID, text=cleaned_text, parse_mode="Markdown")
+                await message.reply_text("✅ Text message clean karke private channel me bhej diya gaya hai!")
+            return
 
-    # 2. Video
-    if message.video:
-        await message.reply_video(video=message.video.file_id, caption=cleaned_text, parse_mode="Markdown")
-        return
+        # 2. Video
+        if message.video:
+            await context.bot.send_video(chat_id=CHANNEL_ID, video=message.video.file_id, caption=cleaned_text, parse_mode="Markdown")
+            await message.reply_text("✅ Video clean karke private channel me bhej di gayi hai!")
+            return
 
-    # 3. Photo
-    if message.photo:
-        await message.reply_photo(photo=message.photo[-1].file_id, caption=cleaned_text, parse_mode="Markdown")
-        return
+        # 3. Photo
+        if message.photo:
+            await context.bot.send_photo(chat_id=CHANNEL_ID, photo=message.photo[-1].file_id, caption=cleaned_text, parse_mode="Markdown")
+            await message.reply_text("✅ Photo clean karke private channel me bhej di gayi hai!")
+            return
 
-    # 4. Animation (GIF)
-    if message.animation:
-        await message.reply_animation(animation=message.animation.file_id, caption=cleaned_text, parse_mode="Markdown")
-        return
+        # 4. Animation (GIF)
+        if message.animation:
+            await context.bot.send_animation(chat_id=CHANNEL_ID, animation=message.animation.file_id, caption=cleaned_text, parse_mode="Markdown")
+            await message.reply_text("✅ GIF clean karke private channel me bhej diya gaya hai!")
+            return
 
-    # 5. Document / File
-    if message.document:
-        await message.reply_document(document=message.document.file_id, caption=cleaned_text, parse_mode="Markdown")
-        return
+        # 5. Document / File
+        if message.document:
+            await context.bot.send_document(chat_id=CHANNEL_ID, document=message.document.file_id, caption=cleaned_text, parse_mode="Markdown")
+            await message.reply_text("✅ Document clean karke private channel me bhej diya gaya hai!")
+            return
+            
+    except Exception as e:
+        # Agar bot admin nahi hoga to error show karega
+        await message.reply_text(f"❌ Channel me bhejne me dikkat aayi. Check karein ki Bot channel ka Admin hai ya nahi.\nError: {e}")
 
-# Handler ko register karna (sirf ek baar initialize hoga)
+# Handler ko register karna
 telegram_app.add_handler(MessageHandler(filters.ALL, handle_post))
 
 # Flask Route jo Vercel par incoming webhooks receive karega
@@ -68,11 +83,9 @@ def webhook():
     if request.method == "POST":
         update_json = request.get_json(force=True)
         
-        # Async function ko Flask ke andar chalane ke liye loop ka use
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-        # Telegram update process karein
         update = Update.de_json(update_json, telegram_app.bot)
         loop.run_until_complete(telegram_app.initialize())
         loop.run_until_complete(telegram_app.process_update(update))
@@ -83,4 +96,4 @@ def webhook():
 
 @app.route('/', methods=['GET'])
 def index():
-    return "Bot is running on Vercel via Webhook!", 200
+    return "Bot is running on Vercel via Webhook with Private Channel Support!", 200
